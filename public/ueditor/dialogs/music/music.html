@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <script type="text/javascript" src="../internal.js"></script>
+    <link rel="stylesheet" type="text/css" href="music.css" />
+</head>
+
+<body>
+    <div class="wrapper">
+        <div id="videoTab">
+            <div id="tabHeads" class="tabhead">
+                <span tabSrc="video" class="focus" style="width:120px;" data-content-id="video">插入音频</span>
+                <span tabSrc="online" style="width:120px;" data-content-id="online">音频库<var
+                        id="lang_tab_uploadV"></var></span>
+            </div>
+            <div id="tabBodys" class="tabbody">
+                <div id="video" class="panel focus">
+                    <form>
+                        <table style="margin-bottom: 10px;">
+                            <tr>
+                                <td><label for="videoUrl" class="url" style="font-size: 14px;margin-left:50px;">音频路径</label></td>
+                                <td><input id="videoUrl" type="text" style="width: 550px;height: 30px;"></td>
+                                <td><input
+                                        style="background-color: #00b7ee;color:white;border: none;width: 100px;line-height: 30px;margin: 0 10px;"
+                                        type="button" value="上传音频..." onclick="$('#filer').click();">
+                                        <img id="playBG" src="./images/playbg.png" style="display:none;">
+                                        <input type="file"
+                                        accept="audio/*"
+                                        id="filer" name="filer" style="display:none;"></td>
+                            </tr>
+                            <tr id="progressbar" style="display:none;">
+                                <td> </td>
+                                <td style="height:10px;background-color: #ddd;">
+                                    <div id="progressps" style="width:0%;height:10px;background-color: #00c22a;"></div>
+                                </td>
+                                <td> </td>
+                             </tr>
+                             <tr style="display:none;">
+                                <td><label for="videoName" class="url" style="font-size: 14px;margin-left:50px;">音频名称</label></td>
+                                <td><input id="videoName" type="text" style="width: 550px;height: 30px;"></td>
+                                <td> </td>
+                            </tr>
+                        </table>
+                    </form>
+                    <div id="preview" style="padding-top:50px;background-color: #fff;"></div>
+                </div>
+                <div id="online" class="panel">
+                    <div id="imageList"><var id="lang_imgLoading"></var></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jquery -->
+    <script type="text/javascript" src="../../third-party/jquery-1.10.2.min.js"></script>
+    <!-- video -->
+    <script type="text/javascript" src="music.js"></script>
+    <script>
+        var files=null;
+        $('body').on('change', '#filer', function () {
+           
+            files = $($(this))[0].files[0];
+            if (files.type.indexOf("audio/") != 0) {
+                alert("文件格式不正确");
+                $('#filer').val('');
+                return;
+            }
+            if (files.size > 51200000) {
+                alert("文件超出50M限制");
+                $("form")[0].reset();
+                $('#filer').val('');
+                return;
+            }
+
+            var audio='<audio class="edui-faked-music" controls=""  onloadedmetadata="loadedmetadata(this)" style="width:100%;"  width="100%"  src="' + URL.createObjectURL(files) + '"> <source src=" ' + URL.createObjectURL(files) + '" type="audio/*"/> </audio>';
+            $("#preview").html(audio);
+    });
+
+        function loadedmetadata(ent) {
+              setTimeout(function(){
+                $(ent).hide();
+            window.UE.uploadFile(files,function(data1){
+                            var link1=data1.get('host') + '/' + data1.get('key');
+                            $("#videoUrl").val(link1);
+                            $("#videoName").val(files.name);
+
+                            const canvas = document.createElement('canvas');
+                            canvas.width = 750;
+                            canvas.height =118;
+                            const ima = $("#playBG")[0];
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(ima, 0,0,canvas.width, canvas.height);
+                           // console.log(Math.round(ent.duration/1000));
+                            //console.log(ent.duration);
+                            var time=Math.round(ent.duration/(60*60))+":"+Math.round((ent.duration/(60)))%60+":"+Math.round(ent.duration)%60
+                            ctx.font="12px Verdana";
+                            ctx.fillText("0:0:0/"+time,20,91);
+                            ctx.font="14px Verdana";
+                            ctx.fillText(files.name,20,40);
+
+                            const image =dataURItoBlob(canvas.toDataURL('image/png'));
+                            image.name="audiobg.png";
+                          //  console.log(canvas.toDataURL('image/png'));
+                            window.UE.uploadFile(image,function(data){
+                                var link = data.get('host') + '/' + data.get('key');
+                                var audio='<audio class="edui-faked-music" controls="" style="width:100%;"  width="100%" src="' + link1 + '" _img="'+link+'" > <source src=" ' + link1 + '" type="audio/*"/> </audio>';
+                                $("#preview").html(audio);
+
+                            //保存资原库
+                            var p={
+                                // "custGlobalId":window.sessionStorage.getItem("custGlobalId"),
+                                "fileType":"audio",
+                                "groupId":10000,
+                                "fileName":files.name,
+                                "fileSize":files.size,
+                                "orgCode":window.sessionStorage.getItem("orgCode"),
+                                "filePath":link1,
+                                "thumbnail":link
+                                };
+                            $.ajax({
+                            url: window.UE.getSuiyueHost()+"api/pc/fileUpload/saveFileUpload",
+                            type: 'post',
+                            data: p,
+                            headers:{openId:window.sessionStorage.getItem("openId")},
+                            success: function (res){
+                            //  console.log(res);
+                            },complete:function(data){
+                          //  console.log(data);
+                            files=null;
+                               }
+                             });
+                            });
+                        },function(data){
+                          $('#filer').val('');
+                          $("#progressbar").css("display","none");
+                          $("#progressps").css("width","0%");
+                       },null,function(xhr){//进度条
+                          $("#progressps").css("width",(100*xhr.loaded/xhr.total)+"%");
+                                
+                       });
+
+
+                    },500);
+        }
+
+        /**
+         * 根据url生成视频预览
+         * @param url
+         */
+        function createPreviewVideo(url) {
+        //    console.log("=======111" + url);
+            if (!url) return;
+          //  $("#preview").empty();
+
+           
+        
+        }
+        function dataURItoBlob(dataURI) {
+            const binary = atob(dataURI.split(',')[1]);
+            const array = [];
+            for (let i = 0; i < binary.length; i += 1) {
+                array.push(binary.charCodeAt(i));
+            }
+            return new Blob([new Uint8Array(array)], { type: 'image/png' });
+            }
+        
+    </script>
+</body>
+
+</html>

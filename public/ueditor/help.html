@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>列丰富文本编辑器应用实例</title>
+    <script src="/ueditor/jquery-2.2.3.min.js"></script>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script src="/layui/layui.all.js"></script>
+    
+</head>
+
+<body contenteditable="false" spellcheck="false" style="background:#f9f9f9;">
+    <div
+        style="position: fixed;top:0;left:0;right:0;height:50px;background-color: #fcfcfc; box-shadow: 0 2px 4px #ccc;">
+        <div style="float:left;line-height:30px;margin:10px;color:#555;font-size: 16px;"><b><i
+                class="layui-icon">&#xe66e;</i> 列丰富文本编辑器应用实例</b></div>
+      
+        <div style="position: fixed;top:50px;left:0;right:0;bottom: 0;overflow: auto;">
+            <div id="contentView" class="view"
+                style="width:850px;min-height:calc(100vh - 150px);background-color: #fff;box-shadow: 0 2px 8px #888;margin:25px calc((100% - 790px)/2);padding:20px;">
+<pre style="line-height: 2em;">
+<span style="font-size:16px;"><b>一、基本应用条件</b></span>
+    1、测试前请先登录，否则无法应用图片、视频等功能
+    2、顶层页面或父级页面需要引用layui组件
+     <span style="color:rgb(0, 146, 151)" >  < link rel="stylesheet" href="/layui/css/layui.css" ></span>
+     <span style="color:rgb(0, 146, 151)" >  < script src="/layui/layui.all.js">< /script></span>
+    2、custGlobalId、staffId和orgCode需要预先写入window.sessionStorage中，orgCode可以为空<span style="color:rgb(0, 146, 151)" >
+        window.sessionStorage.setItem("custGlobalId",custGlobalId);
+        window.sessionStorage.setItem("staffId",staffId);
+        window.sessionStorage.setItem("orgCode",orgCode);</span>
+    3、阿里云存储的授权获取域名需要在顶层页面或父级页面设置变量 suiyueHost
+    <span style="color:rgb(0, 146, 151)" >    var suiyueHost="https://api.oldpeople.test.liefengtech.com/";</span>
+    4、本组件需要使用iframe引用
+    <span style="color:rgb(0, 146, 151)" >   < iframe name="ueditor" id="ueditor" src="/ueditor/index.html?titlename=属性名称" 
+     style="width:100%;height:500px;border:0px;">< /iframe></span>
+<span style="font-size:16px;"><b>二、实例应用</b></span>
+    <b>1、预览式应用</b>
+        进入即预览，全屏编辑，提交图片、视频、音频、模板等多媒体资源应用，适用于较复杂的富文本编辑需求。
+        （1）配置：（titlename需要传参，宽高可自定义）   
+         <span style="color:rgb(0, 146, 151)" > < iframe name="ueditor" id="ueditor" src="/ueditor/index.html?titlename=活动内容"
+          style="width:100%;height:500px;border:0px;">< /iframe> </span>
+        （2）富文本的赋值与调用
+            (A) 初始化富文本内容：
+            <span style="color:rgb(0, 146, 151)" >    var v_Obj=document.getElementById("ueditor").contentWindow;//获取iframe对象
+                v_Obj.setContent('富文本HTML');//写入编辑器富文本内容
+                注：请在iframe loaded之后赋值，如iframe的onload，或可知iframe loaded之后赋值 </span>
+
+            (B) 获取富文本内容
+            <span style="color:rgb(0, 146, 151)" >    var v_Obj=document.getElementById("ueditor").contentWindow;//获取iframe对象
+                v_Obj.getContent();//获取富文本内容
+                v_Obj.getContentText();//获取纯文本内容
+                v_Obj.getUEContent();//获取未经处理的编辑器富文本内容
+            </span>
+            
+            (C) 获取富文本多媒体集（图片、视频、音频 或全部）
+            <span style="color:rgb(0, 146, 151)" >    var v_Obj=document.getElementById("ueditor").contentWindow;//获取iframe对象
+                v_Obj.getMultimedia('image');//获取富文本图片集
+                v_Obj.getMultimedia('video');//获取富文本视频集
+                v_Obj.getMultimedia('audio');//获取富文本音频集
+                v_Obj.getMultimedia('all');//获取富文本所有多媒体集
+            </span>
+        （3）只读与编辑的控制：
+        两种方式：
+        （A）传参模式：将iframe的地址加入preview=true，例：/ueditor/index.html?preview=true&titlename=属性名称
+        （B）调用方法模式：
+        <span style="color:rgb(0, 146, 151)" > var v_Obj=document.getElementById("ueditor").contentWindow;//获取iframe对象
+            v_Obj.setPreview(true);//只读模式
+            v_Obj.setPreview(false);//编辑模式
+        </span>
+        （4）实例：
+<iframe name="ueditor1" id="ueditor1" src="/ueditor/index.html?titlename=活动内容" onload="setContent('ueditor1');" style="width:100%;height:600px;border:0px;"></iframe>
+<button type="button" class="layui-btn layui-btn-sm" onclick="setContent2('ueditor1');">
+    加载富文本内容 
+    </button> <button type="button" class="layui-btn layui-btn-sm" onclick="getContent('ueditor1');">
+获取富文本内容 
+</button> <button type="button" class="layui-btn layui-btn-sm" onclick="getMultimedia('ueditor1','image');">
+    获取图片集
+    </button> <button type="button" class="layui-btn layui-btn-sm" onclick="getMultimedia('ueditor1','video');">
+        获取视频集
+        </button> <button type="button" class="layui-btn layui-btn-sm" onclick="getMultimedia('ueditor1','audio');">
+            获取音频集
+            </button> <button type="button" class="layui-btn layui-btn-sm" onclick="getMultimedia('ueditor1','all');">
+            获取多媒体集
+            </button> <button type="button" class="layui-btn layui-btn-sm" onclick="setPreview('ueditor1',this);">切换为只读模式</button>
+
+
+    <b>2、即编辑应用</b>
+        进入即编辑，仅提供简单的编辑功能，适用于较简单的富文本编辑需求。
+        （1）配置：（宽高可自定义）
+        <span style="color:rgb(0, 146, 151)" >    < iframe name="ueditor" id="ueditor" src="/ueditor/editor.html" 
+            style="width:100%;height:500px;border:0px;">< /iframe></span>
+        （2）富文本的赋值与调用
+            (A) 初始化富文本内容：
+            <span style="color:rgb(0, 146, 151)" >   var v_Obj=document.getElementById("ueditor").contentWindow;//获取iframe对象
+                v_Obj.setContent('富文本HTML');//写入编辑器富文本内容
+                注：请在iframe loaded之后赋值，如iframe的onload，或可知iframe loaded之后赋值</span>
+
+            (B) 获取富文本内容
+            <span style="color:rgb(0, 146, 151)" > var v_Obj=document.getElementById("ueditor").contentWindow;//获取iframe对象
+                v_Obj.getContent();//获取富文本内容
+                v_Obj.getContentText();//获取纯文本内容
+                v_Obj.getUEContent();//获取未经处理的编辑器富文本内容
+            </span>
+
+            (C) 获取富文本多媒体集（图片、视频、音频 或全部）
+            <span style="color:rgb(0, 146, 151)" >    var v_Obj=document.getElementById("ueditor").contentWindow;//获取iframe对象
+                v_Obj.getMultimedia('image');//获取富文本图片集
+                v_Obj.getMultimedia('video');//获取富文本视频集
+                v_Obj.getMultimedia('audio');//获取富文本音频集
+                v_Obj.getMultimedia('all');//获取富文本所有多媒体集
+            </span>
+        （3）只读与编辑的控制：
+            两种方式：
+            （A）传参模式：将iframe的地址加入preview=true，例：/ueditor/editor.html?preview=true
+            （B）调用方法模式：
+            <span style="color:rgb(0, 146, 151)" > var v_Obj=document.getElementById("ueditor").contentWindow;//获取iframe对象
+                v_Obj.setPreview(true);//只读模式
+                v_Obj.setPreview(false);//编辑模式
+            </span>
+        （4）实例：
+<iframe name="ueditor2" id="ueditor2" src="/ueditor/editor.html" onload="setContent('ueditor2');"  style="width:100%;height:500px;border:0px;"></iframe>
+<button type="button" class="layui-btn layui-btn-sm" onclick="setContent2('ueditor2');">
+加载富文本内容 
+</button>  <button type="button" class="layui-btn layui-btn-sm" onclick="getContent('ueditor2');">
+    获取富文本内容 
+    </button>  <button type="button" class="layui-btn layui-btn-sm" onclick="getMultimedia('ueditor2','image');">
+        获取图片集
+        </button> <button type="button" class="layui-btn layui-btn-sm" onclick="getMultimedia('ueditor2','video');">
+            获取视频集
+            </button> <button type="button" class="layui-btn layui-btn-sm" onclick="getMultimedia('ueditor2','audio');">
+                获取音频集
+                </button> <button type="button" class="layui-btn layui-btn-sm" onclick="getMultimedia('ueditor2','all');">
+                获取多媒体集
+                </button>  <button type="button" class="layui-btn layui-btn-sm" onclick="setPreview('ueditor2',this);">切换为只读模式</button>
+</pre>
+            </div>
+</body>
+<script>
+
+    //接口参数
+    //titlename：标题，从地址中传入
+    //custGlobalId：需要预先写入window.sessionStorage
+    //orgCode：需要预先写入window.sessionStorage
+    
+    function setContent(id){
+        var v_Obj=document.getElementById(id).contentWindow;//获取iframe对象
+            v_Obj.setContent('自动加载富文本实例');//写入编辑器富文本内容
+    }
+
+    function getContent(id){
+        var v_Obj=document.getElementById(id).contentWindow;//获取iframe对象
+        var html=v_Obj.getContent();//获取富文本内容 
+        var html2=v_Obj.getUEContent();//获取未处理的富文本内容 
+        var text=v_Obj.getContentText();//获取纯文本内容
+        alert("富文本HTML="+html);
+        alert("未处理的富文本HTML="+html2);
+        alert("纯文本TEXT="+text);
+    }
+
+    function getMultimedia(id,type){
+        var v_Obj=document.getElementById(id).contentWindow;//获取iframe对象
+        var list=v_Obj.getMultimedia(type);
+           alert(JSON.stringify(list));
+    }
+
+    function setContent2(id){
+        var v_Obj=document.getElementById(id).contentWindow;//获取iframe对象
+            v_Obj.setContent('手工加载富文本内容:::::::::::::::');//写入编辑器富文本内容
+    }
+
+    function setPreview(id,that){
+        var v_Obj=document.getElementById(id).contentWindow;//获取iframe对象
+
+        var state=$(that).text();
+        if(state=='切换为只读模式'){
+            v_Obj.setPreview(true);
+            $(that).text("切换为编辑模式");
+        }else{
+            v_Obj.setPreview(false);
+            $(that).text("切换为只读模式");
+        }
+    }
+    
+</script>
+
+</html>

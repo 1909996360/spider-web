@@ -1,0 +1,185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <script type="text/javascript" src="../internal.js"></script>
+    <link rel="stylesheet" type="text/css" href="video.css" />
+</head>
+
+<body>
+    <div class="wrapper">
+        <div id="videoTab">
+            <div id="tabHeads" class="tabhead">
+                <span tabSrc="video" class="focus" style="width:120px;" data-content-id="video"><var id="lang_tab_insertV"></var></span>
+                <span tabSrc="online" style="width:120px;" data-content-id="online"><var
+                        id="lang_tab_uploadV"></var></span>
+            </div>
+            <div id="tabBodys" class="tabbody">
+                <div id="video" class="panel focus">
+                    <form>
+                        <table style="margin-bottom: 10px;">
+                            <tr>
+                                <td><label for="videoUrl" class="url" style="font-size: 14px;margin-left:50px;"><var
+                                            id="lang_video_url"></var></label></td>
+                                <td><input id="videoUrl" type="text" style="width: 550px;height: 30px;"></td>
+                                <td><input
+                                        style="background-color: #00b7ee;color:white;border: none;width: 100px;line-height: 30px;margin: 0 10px;"
+                                        type="button" value="上传视频..." onclick="$('#filer').click();">
+                                        <img id="playBG" src="./images/play.png" style="display:none;">
+                                        <input type="file"
+                                        accept="video/*"
+                                        id="filer" name="filer" style="display:none;"></td>
+                            </tr>
+                            <tr id="progressbar" style="display:none;">
+                                <td> </td>
+                                <td style="height:10px;background-color: #ddd;">
+                                    <div id="progressps" style="width:0%;height:10px;background-color: #00c22a;"></div>
+                                </td>
+                                <td> </td>
+                             </tr>
+                        </table>
+                    </form>
+                    <div id="preview"></div>
+                </div>
+                <div id="online" class="panel">
+                    <div id="imageList"><var id="lang_imgLoading"></var></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jquery -->
+    <script type="text/javascript" src="../../third-party/jquery-1.10.2.min.js"></script>
+    <!-- video -->
+    <script type="text/javascript" src="video.js"></script>
+    <script>
+        var files=null;
+        $('body').on('change', '#filer', function () {
+           
+            files = $($(this))[0].files[0];
+            if (files.type.indexOf("video/") != 0) {
+                alert("文件格式不正确");
+                $('#filer').val('');
+                return;
+            }
+            if (files.size > 204800000) {
+                alert("文件超出200M限制");
+                $("form")[0].reset();
+                $('#filer').val('');
+                return;
+            }
+
+            var video='<video class="edui-upload-video  vjs-default-skin video-js" onloadedmetadata="loadedmetadata(this)" controls=""  width="100%" height="100%" src="' + URL.createObjectURL(files) + '" data-setup="{}"> <source src=" ' + URL.createObjectURL(files) + '" type="video/*"> </video>';
+            $("#preview").html(video);
+
+        })
+
+        /**
+         * 根据url生成视频预览
+         * @param url
+         */
+        function createPreviewVideo(url) {
+        //    console.log("=======111" + url);
+            if (!url) return;
+          //  $("#preview").empty();
+
+           
+        
+        }
+
+
+        function dataURItoBlob(dataURI) {
+            const binary = atob(dataURI.split(',')[1]);
+            const array = [];
+            for (let i = 0; i < binary.length; i += 1) {
+                array.push(binary.charCodeAt(i));
+            }
+            return new Blob([new Uint8Array(array)], { type: 'image/jpeg' });
+            }
+
+            
+        
+          function loadedmetadata(ent) {
+              setTimeout(function(){
+                
+                $(ent).hide();
+                const canvas = document.createElement('canvas');
+                canvas.width = 192*3;
+                canvas.height =108*3;
+                var vw=0,vh=0;
+                if(ent.videoWidth-canvas.width<ent.videoHeight-canvas.height){
+                    vw=ent.videoWidth*canvas.height/ent.videoHeight;
+                    vh=canvas.height;
+                }else{
+                    vw=canvas.width;
+                    vh=ent.videoHeight*canvas.width/ent.videoWidth;
+                }
+                
+                var xs=canvas.width-vw;
+                var ys=canvas.height-vh;
+                xs=xs<0?0:xs;
+                ys=ys<0?0:ys;
+                const ima = $("#playBG")[0];
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(ent, xs/2, ys/2,canvas.width-xs, canvas.height-ys);
+                ctx.drawImage(ima, 0,0,canvas.width, canvas.height);
+                
+                // const ctx = canvas.getContext('2d');
+                // canvas.width = ent.videoWidth;
+                // canvas.height =ent.videoHeight;
+                // ctx.drawImage(ent, 0, 0);
+
+                const image =dataURItoBlob(canvas.toDataURL('image/jpeg'));
+                image.name="videobg.png";
+                
+                        $("#progressbar").css("display","");
+                        window.UE.uploadFile(files,function(data1){
+                            var link1=data1.get('host') + '/' + data1.get('key');
+                            $("#preview").find("video")[0].src=link1;
+                            $("#videoUrl").val(link1);
+                            $("#preview").find("video")[0].onloadedmetadata=function(){};
+                            $(ent).show();
+                            window.UE.uploadFile(image,function(data){
+                            var link = data.get('host') + '/' + data.get('key');
+                            $($("#preview").find("video")[0]).attr("_poster",link);
+                            //保存资原库
+                            var p={
+                                // "custGlobalId":window.sessionStorage.getItem("custGlobalId"),
+                                "fileType":"video",
+                                "groupId":10000,
+                                "fileName":files.name,
+                                "fileSize":files.size,
+                                "orgCode":window.sessionStorage.getItem("orgCode"),
+                                "filePath":link1,
+                                "thumbnail":link
+                                };
+                           $.ajax({
+                            url: window.UE.getSuiyueHost()+"api/pc/fileUpload/saveFileUpload",
+                            type: 'post',
+                            data: p,
+                            headers:{openId:window.sessionStorage.getItem("openId")},
+                            success: function (res){
+                            //  console.log(res);
+                            },complete:function(data){
+                          //  console.log(data);
+                            files=null;
+                               }
+                             });
+                            });
+                        },function(data){
+                          $('#filer').val('');
+                          $("#progressbar").css("display","none");
+                          $("#progressps").css("width","0%");
+                       },null,function(xhr){//进度条
+                          $("#progressps").css("width",(100*xhr.loaded/xhr.total)+"%");
+                                
+                       });
+
+               },500);
+            }
+    </script>
+</body>
+
+</html>

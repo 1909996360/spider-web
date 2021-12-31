@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <script src="../../jquery-2.2.3.min.js"></script>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+
+</head>
+
+<body>
+    <img src="help.jpg"/>
+    <input id="addImg" type="file" onchange="getFileToPicture()" accept="image/*" style="display:none;" />
+    <div id="items" style="padding:30px;">
+        <!-- <div class="layui-form-item">
+            <label class="layui-form-label">图片位置</label>
+            <div class="layui-input-block" >
+              <input readonly type="text" id="value" onfocus="this.select()" autocomplete="off" class="layui-input" style="width:calc(99% - 150px);float: left;">
+              <button class="layui-btn layui-btn-normal" style="margin-left:10px;width:140px;float: left;" onclick="upImage()">浏览并上传...</button></div>
+          </div> -->
+
+    </div>
+    <script src="/layui/layui.all.js"></script>
+    <script>
+        var curIndex=-1;
+        var word_image = parent.word_image;
+        parent.word_image = null;
+        var list=[];
+        getWordImages();
+     
+    //弹出图片上传的对话框
+    function upImage(i){
+        curIndex=i;
+        $("#addImg")[0].click();
+       
+    }
+
+
+    function getFileToPicture() {
+      var that=this;
+            var img=$("#addImg");
+            var files = $(img)[0].files[0];
+            
+            if (files.type.indexOf("image/") != 0) {
+                alert("图片格式不支持");
+                return;
+            }
+            if (files.size > 20480000) {
+                alert("图片超出2M限制");
+               img.val('');
+                return;
+            }
+            parent.UE.uploadFile(files,function(data){
+               var link = data.get('host') + '/' + data.get('key');
+               console.log(link);
+               $(parent.editor.document).find("img").each(function(i,item){
+                   var wi=$(item).attr("word_img");
+                   var ci=list[curIndex];
+                   if(ci!=null){
+                    ci=ci.substring(ci.lastIndexOf("/"));
+                   // console.log(ci);
+                   }
+                    if(wi!=null&&wi.lastIndexOf(ci)>0){
+                        item.src=link;
+                        item.removeAttribute("word_img"); 
+                        item.removeAttribute("style"); 
+                        item.removeAttribute("_src"); 
+                    }
+                });     
+                if(word_image!=null){
+                    var index = parent.layer.getFrameIndex(window.name);//获取当前弹窗的Id
+	                parent.layer.close(index);//关闭
+                }else{
+                    if(curIndex>-1){
+                    $("#btm"+curIndex).text("已上传完成");
+                    $("#btm"+curIndex).removeClass("layui-btn-normal").addClass("layui-btn-primary");
+                    $("#btm"+curIndex).attr("disabled",true);
+                    }
+                }
+                curIndex=-1;
+                img.val('');
+            });
+
+    }
+
+
+
+    function getWordImages(){
+        if(word_image==null){
+            $(parent.editor.document).find("img").each(function(i,item){
+            if($(item).attr("word_img")!=null){
+                list.push($(item).attr("word_img"));
+            }
+        });
+       
+       }else{
+        list.push(word_image);
+       }
+       $("#items").html("");
+       if(list==null||list.length==0){
+        $("#items").append($('<div style="text-align:center;font-size:20px;color:#cc0000;">没有找到相关的word图片</div>'));
+       }else{
+       var i=0;
+        list.map(function(url){
+            var item=$(' <div class="layui-form-item">'+
+            '<label class="layui-form-label">图片位置</label>'+
+           ' <div class="layui-input-block" >'+
+            '  <input readonly type="text" title="右键菜单复制 或 Ctrl+C复制" value="'+url+'" id="value'+i+'" onfocus="this.select()" autocomplete="off" class="layui-input" style="width:calc(99% - 150px);float: left;">'+
+            '  <button id="btm'+i+'" class="layui-btn layui-btn-normal" style="margin-left:10px;width:140px;float: left;" onclick="upImage('+i+')">浏览并上传...</button></div>'+
+         '</div>');
+         $("#items").append(item);
+         i++;
+        });
+    }
+    }
+    </script>
+</body>
+
+</html>
