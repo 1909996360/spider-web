@@ -9,6 +9,7 @@
 
 export default {
   created(){
+    console.log('设置保护权限之后提交代码');
     if(sessionStorage.getItem('userInfo')){
       this.$store.replaceState(Object.assign({}, this.$store.state,JSON.parse(sessionStorage.getItem("userInfo"))))
     }
